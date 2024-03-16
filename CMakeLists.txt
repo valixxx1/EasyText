@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.22.1)
+project(easytext)
+add_executable(easytext main.c)
+find_package(Curses REQUIRED)
+target_link_libraries(easytext ${CURSES_LIBRARIES})
+include_directories(${CURSES_INCLUDE_DIR})
