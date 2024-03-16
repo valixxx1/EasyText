@@ -1,7 +1,18 @@
-#include <ncurses.h>
-#include <stdio.h>
 #include <stdnoreturn.h>
+#include <ncurses.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <stdio.h>
+
+typedef int64_t i64;
+typedef int32_t i32;
+typedef int16_t i16;
+typedef int8_t  i8 ;
+
+typedef uint64_t u64;
+typedef uint32_t u32;
+typedef uint16_t u16;
+typedef uint8_t  u8 ;
 
 noreturn void stop() {
   refresh();
@@ -10,9 +21,9 @@ noreturn void stop() {
   exit(0);
 }
 
-noreturn void print_err(const char *str, const size_t len) {
+noreturn void print_err(const char *str, const u64 len) {
   chtype ch_err;
-  for (int i = 0; i < len-1; i++) {
+  for (u64 i = 0; i < len-1; i++) {
     ch_err = str[i] | COLOR_PAIR(1);
     addch(ch_err);
   }
@@ -31,21 +42,21 @@ void init() {
   init_pair(1, COLOR_RED, COLOR_BLACK);
 }
 
-int main(int argc, char **argv) {
-  FILE *file;
-  char ch;
-  init();
-
-  if ((file = fopen(argv[1], "r")) == NULL) {
-    file_not_exist_err();
-  }
-
-  ch = fgetc(file);
+void reading(FILE *file)
+{
+  char ch = fgetc(file);
   while (ch != EOF) {
     addch(ch);
     ch = fgetc(file);
   }
+}
 
+int main(int argc, char **argv) {
+  FILE *file = fopen(argv[1], "r");
+  init();
+  if (!file)
+    file_not_exist_err();
+  reading(file);
   fclose(file);
   stop();
 }
