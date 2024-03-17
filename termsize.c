@@ -1,10 +1,8 @@
 #include <sys/ioctl.h>
-#include <stdint.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <termsize.h>
-
-typedef uint32_t u32;
+#include <types.h>
 
 u32 termwidth(void)
 {
