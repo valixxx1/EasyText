@@ -4,15 +4,16 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <types.h>
+#include <vector>
 
-noreturn void stop() {
+[[noreturn]] void stop() {
   refresh();
   getch();
   endwin();
   exit(0);
 }
 
-noreturn void print_err(const char *str, const u64 len) {
+[[noreturn]] void print_err(const char *str, const u64 len) {
   chtype ch_err;
   for (u64 i = 0; i < len-1; i++) {
     ch_err = str[i] | COLOR_PAIR(1);
@@ -21,7 +22,7 @@ noreturn void print_err(const char *str, const u64 len) {
   stop();
 }
 
-noreturn void file_not_exist_err() {
+[[noreturn]] void file_not_exist_err() {
   char str[] = "File does not exist!";
   print_err(str, sizeof(str));
 }
@@ -33,10 +34,28 @@ void init() {
   init_pair(1, COLOR_RED, COLOR_BLACK); /* color of error */
 }
 
-void reading(FILE *file)
+void findnewlines(FILE *file, std::vector<u64> &newlines)
 {
   char ch = fgetc(file);
-  u32 countoflines = 1;
+  while (ch != EOF) {
+    if (ch == '\n') {
+      newlines.push_back(ftell(file));
+    }
+    ch = fgetc(file);
+  }
+  fseek(file, SEEK_SET, 0);
+}
+
+/* firstline is a line that is on the top of screen */
+void reading(FILE *file, std::vector<u64> &newlines, u64 firstline)
+{
+  if (firstline == 0) {
+    fseek(file, 0, SEEK_SET);
+  } else {
+    fseek(file, newlines[firstline-1], SEEK_SET);
+  }
+  char ch = fgetc(file);
+  u64 countoflines = 1;
   while (ch != EOF) {
     if (countoflines > termheight()) {
       break;
@@ -51,10 +70,12 @@ void reading(FILE *file)
 
 int main(int argc, char **argv) {
   FILE *file = fopen(argv[1], "r");
+  std::vector<u64> newlines; /* positions of every newline character */
   init();
   if (!file)
     file_not_exist_err();
-  reading(file);
+  findnewlines(file, newlines);
+  reading(file, newlines, 0);
   fclose(file);
   stop();
 }

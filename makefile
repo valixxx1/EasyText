@@ -1,2 +1,2 @@
-easytext: main.c termsize.c
-	gcc -o easytext main.c termsize.c -Iinclude -lncurses
+easytext: main.cpp termsize.c
+	g++ -o easytext main.cpp termsize.c -Iinclude -lncurses
