@@ -8,7 +8,6 @@
 
 [[noreturn]] void stop() {
   refresh();
-  getch();
   endwin();
   exit(0);
 }
@@ -19,6 +18,7 @@
     ch_err = str[i] | COLOR_PAIR(1);
     addch(ch_err);
   }
+  getch();
   stop();
 }
 
@@ -32,6 +32,9 @@ void init() {
   move(0, 0);
   start_color();
   init_pair(1, COLOR_RED, COLOR_BLACK); /* color of error */
+  cbreak();
+  noecho();
+  keypad(stdscr, TRUE);
 }
 
 void findnewlines(FILE *file, std::vector<u64> &newlines)
@@ -66,16 +69,43 @@ void reading(FILE *file, std::vector<u64> &newlines, u64 firstline)
     }
     ch = fgetc(file);
   }
+  refresh();
 }
 
 int main(int argc, char **argv) {
   FILE *file = fopen(argv[1], "r");
+  int ch; /* code of current symbol */
+  int curline = 0;
   std::vector<u64> newlines; /* positions of every newline character */
   init();
   if (!file)
     file_not_exist_err();
   findnewlines(file, newlines);
-  reading(file, newlines, 0);
+  reading(file, newlines, curline);
+
+  for (;;) {
+    ch = getch();
+    move(0, 0);
+    switch (ch) {
+      case 27: /* Esc */
+        goto exit;
+      case KEY_UP:
+        if (curline > 0) {
+          reading(file, newlines, --curline);
+        }
+        break;
+      case KEY_DOWN:
+        if (curline + termheight() < newlines.size()) {
+          reading(file, newlines, ++curline);
+        }
+        break;
+      default:
+        reading(file, newlines, curline);
+        break;
+    }
+  }
+
+exit:
   fclose(file);
   stop();
 }
