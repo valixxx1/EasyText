@@ -1,4 +1,5 @@
 #include <stdnoreturn.h>
+#include <termsize.h>
 #include <ncurses.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -39,14 +40,21 @@ void init() {
   initscr();
   move(0, 0);
   start_color();
-  init_pair(1, COLOR_RED, COLOR_BLACK);
+  init_pair(1, COLOR_RED, COLOR_BLACK); /* color of error */
 }
 
 void reading(FILE *file)
 {
   char ch = fgetc(file);
+  u32 countoflines = 1;
   while (ch != EOF) {
+    if (countoflines > termheight()) {
+      break;
+    }
     addch(ch);
+    if (ch == '\n') {
+      countoflines++;
+    }
     ch = fgetc(file);
   }
 }
